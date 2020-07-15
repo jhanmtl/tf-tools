@@ -44,3 +44,25 @@ def plot_loss_acc(hist):
   ax2.legend()
 
   plt.tight_layout()
+  
+def pred_and_eval(model,scaler,x_val,x_all_normalized,window_size,target_size,batch_size,buffer_size):
+  total_ds=data_windowing_3D(x_all_normalized,window_size,target_size,batch_size,buffer_size,shuffle=False)
+  pred_all=model.predict(total_ds)                                                             
+  pred_all=scaler.inverse_transform(pred_all)[:,0]                                                  
+  val_start=len(pred_all)-len(x_val)                                                            
+  pred_val=pred_all[val_start:].flatten()                                                       
+
+  mae=tf.keras.metrics.MAE(pred_val,x_val)
+
+  
+
+  plt.title("val prediction")
+  plt.style.use("seaborn")
+  plt.plot(x_val,color="green",label="val")
+  plt.plot(pred_val,color="orange",label="predicted")
+  plt.xlabel("val time step")
+  plt.ylabel("temperature")
+  plt.legend()
+  plt.show()
+
+  return mae.numpy().item()
