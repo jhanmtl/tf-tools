@@ -8,6 +8,7 @@ Created on Wed Jul 15 12:20:44 2020
 
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import numpy as np
 
 def data_windowing_3D(data,window_size,target_size,batch_size,buffer_size,shuffle=True):
 
@@ -45,24 +46,30 @@ def plot_loss_acc(hist):
 
   plt.tight_layout()
   
-def pred_and_eval(model,scaler,x_val,x_all_normalized,window_size,target_size,batch_size,buffer_size):
-  total_ds=data_windowing_3D(x_all_normalized,window_size,target_size,batch_size,buffer_size,shuffle=False)
-  pred_all=model.predict(total_ds)                                                             
-  pred_all=scaler.inverse_transform(pred_all)[:,0]                                                  
-  val_start=len(pred_all)-len(x_val)                                                            
-  pred_val=pred_all[val_start:].flatten()                                                       
+def eval(model,x,x_val,window_size,target_size,batch_size,buffer_size,sc):
+  num_test=np.ceil(len(x_val)/target_size).astype(int)
+  test_start=len(x)-num_test*target_size
+  data_start=test_start-window_size
 
-  mae=tf.keras.metrics.MAE(pred_val,x_val)
+  test_data=x[data_start:]
+  test_data=sc.transform(test_data[:,None])[:,0]
 
-  
+  test_ds=data_windowing_3D(test_data,window_size,target_size,batch_size,buffer_size,shuffle=False)
+  raw_pred=model.predict(test_ds).flatten()
 
-  plt.title("val prediction")
+  scaled_pred=sc.inverse_transform(raw_pred[:,None])[:,0]
+  val_pred=scaled_pred[(len(scaled_pred)-len(x_val)):]
+
+  mae=tf.keras.metrics.MAE(val_pred,x_val)
+  print("mae: ",mae.numpy().item())
+
   plt.style.use("seaborn")
-  plt.plot(x_val,color="green",label="val")
-  plt.plot(pred_val,color="orange",label="predicted")
-  plt.xlabel("val time step")
+  plt.title("val evaluation")
+  plt.xlabel("time step")
   plt.ylabel("temperature")
+  plt.plot(x_val,color="green",label="true values")
+  plt.plot(val_pred,color="orange",label="predicted")
   plt.legend()
   plt.show()
-
+  
   return mae.numpy().item()
