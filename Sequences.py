@@ -3,6 +3,8 @@
 """
 Created on Wed Jul 15 12:20:44 2020
 
+helper functions for Sequence modelling in tensorflow
+
 @author: jay
 """
 
