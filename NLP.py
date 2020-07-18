@@ -8,7 +8,7 @@ Created on Thu Jul 16 11:36:40 2020
 
 
 import tensorflow as tf
-from tensorflow.keras.preprocessing.sequences import pad_sequences
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
 
 def load_embed_txt(txt_path):
