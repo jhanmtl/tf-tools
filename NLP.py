@@ -38,7 +38,7 @@ def load_embed_txt(txt_path):
 
 
 
-def get_embedding_weights(tokenizer,embedding_lookup,embedding_dim=100):
+def get_embedding_weights(tokenizer,embedding_lookup):
     """
     prepares a numpy array to be used as weights for a tf.keras Embed layer downstream
 
@@ -60,6 +60,11 @@ def get_embedding_weights(tokenizer,embedding_lookup,embedding_dim=100):
     """
     word_index=tokenizer.word_index
     vocab_size=len(word_index)
+    
+    sample_key=list(embedding_lookup.keys())[0]
+    sample_vec=embedding_lookup[sample_key]
+    embedding_dim=len(sample_vec)
+
     
     embeddings_matrix=np.zeros((vocab_size+1,embedding_dim))
     
