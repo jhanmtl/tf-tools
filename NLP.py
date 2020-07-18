@@ -8,6 +8,7 @@ Created on Thu Jul 16 11:36:40 2020
 
 
 import tensorflow as tf
+from tensorflow.keras.preprocessing.sequences import pad_sequences
 import numpy as np
 
 def load_embed_txt(txt_path):
@@ -36,32 +37,6 @@ def load_embed_txt(txt_path):
     return lookup
 
 
-def fit_tokenizer_on_ds(tokenizer,ds):   
-    """
-    fits a tf.keras tokenizer on a tf.dataset of encoded (bytes) strings. note that the ds CANNOT be batched
-
-    Parameters
-    ----------
-    tokenizer : tf.keras.preprocessing.text.tokenizer
-    
-    ds : tf.Dataset
-        each entry is a text string.
-
-    Yields
-    ------
-    tokenizer: tf.keras.preprocessing.text.tokenizer
-        fitted tokenizer.
-
-    """
-    
-    def ds_gen(dataset):
-        for i in dataset:
-            yield i[1].numpy().decode()
-    
-    gen=ds_gen(ds)
-    tokenizer.fit_on_texts(gen)
-    
-    return tokenizer
 
 def get_embedding_weights(tokenizer,embedding_lookup,embedding_dim=100):
     """
@@ -95,5 +70,36 @@ def get_embedding_weights(tokenizer,embedding_lookup,embedding_dim=100):
         
     return embeddings_matrix
     
-    
+
+def label_padded_seq_ds(tokenizer,text,label,max_length,padding_type='post',trunc_type='post'):
+    """
+    uses a tokenizer already fitted on training data to convert list of sentences to sequnces of integer based on the tokenizer's
+    word encoding. Then use pad_sequences to either pad or truncate resulting sequences to a uniform max_length. finally combine
+    the labels and padded sequences into a tf.Dataset for easy manipulation downstream
+
+    Parameters
+    ----------
+    tokenizer : tf.keras.preprocessing.text.Tokenizer
+        Already fitted on the words on the training corpus
+    text : str
+        text to encode and pad
+    label : ndarray/list
+        integer class labels of each sentence in the text.
+    max_length : int
+        length of the resulting sequences from each sentence, wether by padding or truncating.
+    padding_type : pad with zeros pre or post
+        DESCRIPTION. The default is 'post'.
+    trunc_type : drop words wither pre or post
+        DESCRIPTION. The default is 'post'.
+
+    Returns
+    -------
+    ds : tf.Dataset
+        tf.Dataset of yielding pairs of (label,seq), whether label is a int64 and seq is a list of length max_length
+
+    """
+    seq=tokenizer.texts_to_sequences(text)
+    padded_seq=pad_sequences(seq,maxlen=max_length,padding=padding_type,truncating=trunc_type)
+    ds=tf.data.Dataset.from_tensor_slices((label,padded_seq))
+    return ds
     
