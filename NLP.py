@@ -10,13 +10,13 @@ Created on Thu Jul 16 11:36:40 2020
 import tensorflow as tf
 import numpy as np
 
-def load_glove(glove_path):
+def load_embed_txt(txt_path):
     """
     converts a text file of pretrained glove embeddings into a dict lookup table
 
     Parameters
     ----------
-    glove_path : str
+    txt_path : str
         path to the location of the .txt file containing the glove embedding.
 
     Returns
@@ -25,18 +25,18 @@ def load_glove(glove_path):
         dictionary of pair (word, embed_vector)
 
     """
-    glove_lookup = {};
-    with open(glove_path) as f:
+    lookup = {};
+    with open(txt_path) as f:
         for line in f:
             values = line.split();
             word = values[0];
             coefs = np.asarray(values[1:], dtype='float32');
-            glove_lookup[word] = coefs;
+            lookup[word] = coefs;
     
-    return glove_lookup
+    return lookup
 
 
-def tokenize_on_ds(tokenizer,ds):   
+def fit_tokenizer_on_ds(tokenizer,ds):   
     """
     fits a tf.keras tokenizer on a tf.dataset of encoded (bytes) strings. note that the ds CANNOT be batched
 
@@ -63,7 +63,7 @@ def tokenize_on_ds(tokenizer,ds):
     
     return tokenizer
 
-def make_embedding_matrix(tokenizer,embedding_lookup,embedding_dim=100):
+def get_embedding_weights(tokenizer,embedding_lookup,embedding_dim=100):
     """
     prepares a numpy array to be used as weights for a tf.keras Embed layer downstream
 
