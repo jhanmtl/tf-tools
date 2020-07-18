@@ -105,6 +105,6 @@ def label_padded_seq_ds(tokenizer,text,label,max_length,padding_type='post',trun
     """
     seq=tokenizer.texts_to_sequences(text)
     padded_seq=pad_sequences(seq,maxlen=max_length,padding=padding_type,truncating=trunc_type)
-    ds=tf.data.Dataset.from_tensor_slices((label,padded_seq))
+    ds=tf.data.Dataset.from_tensor_slices((padded_seq,label))
     return ds
     
