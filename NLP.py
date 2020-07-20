@@ -45,6 +45,7 @@ def get_embedding_weights(tokenizer,embedding_lookup):
     Parameters
     ----------
     tokenizer : tf.keras.preprocessing.text.Tokenizer
+        Already fitted on the words in the training corpus
         
     embedding_lookup : dict
         dictionary of pair (word, embed_vector), pretrained
@@ -107,4 +108,35 @@ def label_padded_seq_ds(tokenizer,text,label,max_length,padding_type='post',trun
     padded_seq=pad_sequences(seq,maxlen=max_length,padding=padding_type,truncating=trunc_type)
     ds=tf.data.Dataset.from_tensor_slices((padded_seq,label))
     return ds
+
+def predicative_sequence_ds(tokenizer,corpus):
+    inputs=[]
     
+    for line in corpus:
+        seq=tokenizer.texts_to_sequences([line])[0]
+        for i in range(2,len(seq)):
+            subseq=seq[:i]
+            inputs.append(subseq)
+    
+    inputs=pad_sequences(inputs)
+    ds=tf.data.Dataset.from_tensor_slices(inputs)
+    ds=ds.map(lambda x:(x[:-1],x[-1]))
+    
+    return ds
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
