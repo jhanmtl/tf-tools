@@ -162,7 +162,7 @@ def predicative_sequence_ds(tokenizer,corpus,batch_size,buffer_size):
     
     return ds,max_length-1
 
-def predict(seed_text,words_to_predict,model,tokenizer,train_seq_length,reverse_lookup):
+def sequence_predict(seed_text,words_to_predict,model,tokenizer,train_seq_length,reverse_lookup):
     """
     
 
