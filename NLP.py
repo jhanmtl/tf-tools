@@ -110,37 +110,55 @@ def label_padded_seq_ds(tokenizer,text,label,max_length,padding_type='post',trun
     ds=tf.data.Dataset.from_tensor_slices((padded_seq,label))
     return ds
 
-def predicative_sequence_ds(tokenizer,corpus,batch_size,buffer_size,shuffle):
+def predicative_sequence_ds(tokenizer,corpus,batch_size,buffer_size):
     """
-    transforms a list of strings (corpus) into a tf.dataset suitable for predicting the next word
+    transforms a list of strings (corpus) into a tf.dataset for predicting next word based on previous words.
+    performs integer encoding with supplied tokenizer, and then padding to max sentence length. for each encoded
+    and padded sentence sequence, then start out with a subsequence of the first two word encoding of the sequence, and then
+    iteratively grow this subsequence until encompasses original sequence. each subsequence padded to the original maxlength.
+    
 
     Parameters
     ----------
     tokenizer : tf.keras.preprocessing.text.Tokenizer
-        a tokenizer already fitted on the corpus
+        already fitted on corpus
     corpus : list
-        list of strings.
+        list of strings, NOT separated into individual words per list entry
+    batch_size : integer
+        batch size of resulting tf.dataset.
+    buffer_size : integer
+        buffer size of resulting tf.dataset.
 
     Returns
     -------
-    ds : tf.data.Dataset
-        a dataset that returns a padded, encoded sequence followed by the encoding of the word that should be predicted.
+    ds : tf.Dataset
+        tf.Dataset of yielding pairs of (seq,label), whether seq is a sequence of integers based on tokenizer encoding and
+        padded to a uniform length determined internally, and label is an integer representing the encoding of the next
+        word in the sequence
 
     """
-    inputs=[]
+
+    seq=tokenizer.texts_to_sequences(corpus)
+    padded_seq=pad_sequences(seq,maxlen=None,padding='pre')
+    max_length=padded_seq.shape[1]
     
-    for line in corpus:
-        seq=tokenizer.texts_to_sequences([line])[0]
-        for i in range(2,len(seq)):
-            subseq=seq[:i]
-            inputs.append(subseq)
+    child_seq=[]
     
-    inputs=pad_sequences(inputs)
-    ds=tf.data.Dataset.from_tensor_slices(inputs)
+    for subseq in padded_seq:
+      boundary=np.count_nonzero(np.logical_not(subseq>0))+2
+      while boundary<len(subseq):
+        extract=subseq[:boundary]
+        padded_extract=pad_sequences([extract],maxlen=max_length)[0].tolist()
+        child_seq.append(padded_extract)
+        boundary+=1
+    
+    child_seq=np.array(child_seq)
+    
+    total_seq=np.concatenate((padded_seq,child_seq),axis=0)
+    ds=tf.data.Dataset.from_tensor_slices(total_seq)
     ds=ds.batch(batch_size)
-    if shuffle:
-        ds=ds.shuffle(buffer_size)
-    ds=ds.map(lambda x:(x[:,:-1],x[:,-1]))
+    ds=ds.shuffle(buffer_size)
+    ds=ds.map(lambda x: (x[:,:-1],x[:-1]))
     
     return ds
 
