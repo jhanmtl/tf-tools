@@ -160,7 +160,7 @@ def predicative_sequence_ds(tokenizer,corpus,batch_size,buffer_size):
     ds=ds.batch(batch_size)
     ds=ds.map(lambda x: (x[:,:-1],x[:,-1]))
     
-    return ds
+    return ds,max_length-1
 
 
 
