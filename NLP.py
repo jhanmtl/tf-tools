@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jul 16 11:36:40 2020
+helper functions for NLP modelling in tensorflow
 
 @author: jay
 """
@@ -109,7 +110,7 @@ def label_padded_seq_ds(tokenizer,text,label,max_length,padding_type='post',trun
     ds=tf.data.Dataset.from_tensor_slices((padded_seq,label))
     return ds
 
-def predicative_sequence_ds(tokenizer,corpus):
+def predicative_sequence_ds(tokenizer,corpus,batch_size,buffer_size,shuffle):
     """
     transforms a list of strings (corpus) into a tf.dataset suitable for predicting the next word
 
@@ -136,7 +137,10 @@ def predicative_sequence_ds(tokenizer,corpus):
     
     inputs=pad_sequences(inputs)
     ds=tf.data.Dataset.from_tensor_slices(inputs)
-    ds=ds.map(lambda x:(x[:-1],x[-1]))
+    ds=ds.batch(batch_size)
+    if shuffle:
+        ds=ds.shuffle(buffer_size)
+    ds=ds.map(lambda x:(x[:,:-1],x[:,-1]))
     
     return ds
 
