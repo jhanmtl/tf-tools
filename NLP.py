@@ -162,6 +162,49 @@ def predicative_sequence_ds(tokenizer,corpus,batch_size,buffer_size):
     
     return ds,max_length-1
 
+def predict(seed_text,words_to_predict,model,tokenizer,train_seq_length,reverse_lookup):
+    """
+    
+
+    Parameters
+    ----------
+    seed_text : string
+        starting text, formatted as a single string.
+    words_to_predict: int
+        number of words to predict after seed_text    
+    model : tensorflow model
+        text prediction model.
+    tokenizer : tf.keras.preprocessing.text.Tokenizer
+        tokenizer that was trained on the original corpus.
+    train_seq_length : int
+        length of the input sequence to the model.
+    reverse_lookup : dict
+        the reversed dictionary of the tokenizer.word_index dict. essentially a lookup table of 
+        integer encoding and corresponding word in the tokenizer.word_index
+
+    Returns
+    -------
+    seed_text : string
+        original seed text plus predicted words, predicted words may be less than the specified
+        number due to out of vocab words.
+
+    """
+
+    for _ in range(words_to_predict):
+    
+      encoded_seed=tokenizer.texts_to_sequences([seed_text])[0]
+      padded_seed=pad_sequences([encoded_seed],maxlen=train_seq_length,padding='pre')
+      encoded_pred=np.argmax(model.predict(padded_seed))
+    
+      if encoded_pred in reverse_lookup.keys():
+        decoded_pred=" "+reverse_lookup[encoded_pred]
+      else:
+        decoded_pred=""
+    
+      seed_text+=decoded_pred
+    
+    return seed_text
+
 
 
 
