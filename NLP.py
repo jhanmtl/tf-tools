@@ -156,8 +156,8 @@ def predicative_sequence_ds(tokenizer,corpus,batch_size,buffer_size):
     
     total_seq=np.concatenate((padded_seq,child_seq),axis=0)
     ds=tf.data.Dataset.from_tensor_slices(total_seq)
-    ds=ds.batch(batch_size)
     ds=ds.shuffle(buffer_size)
+    ds=ds.batch(batch_size)
     ds=ds.map(lambda x: (x[:,:-1],x[:,-1]))
     
     return ds
