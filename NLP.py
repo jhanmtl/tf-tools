@@ -110,6 +110,22 @@ def label_padded_seq_ds(tokenizer,text,label,max_length,padding_type='post',trun
     return ds
 
 def predicative_sequence_ds(tokenizer,corpus):
+    """
+    transforms a list of strings (corpus) into a tf.dataset suitable for predicting the next word
+
+    Parameters
+    ----------
+    tokenizer : tf.keras.preprocessing.text.Tokenizer
+        a tokenizer already fitted on the corpus
+    corpus : list
+        list of strings.
+
+    Returns
+    -------
+    ds : tf.data.Dataset
+        a dataset that returns a padded, encoded sequence followed by the encoding of the word that should be predicted.
+
+    """
     inputs=[]
     
     for line in corpus:
